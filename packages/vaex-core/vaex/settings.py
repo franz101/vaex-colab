@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 import pydantic
 from typing import Any, List, Union, Optional, Dict
 from enum import Enum
+from pydantic_settings import SettingsConfigDict
 
 try:
     import dotenv
@@ -56,26 +57,24 @@ class MemoryTrackerEnum(str, Enum):
 
 class MemoryTracker(BaseSettings):
     """Memory tracking/protection when using vaex in a service"""
-    type: MemoryTrackerEnum = Field('default', title="Which memory tracker to use when executing tasks", env="VAEX_MEMORY_TRACKER")
+    type: MemoryTrackerEnum = Field('default', title="Which memory tracker to use when executing tasks", validation_alias="VAEX_MEMORY_TRACKER")
     max: Optional[str] = Field(None, title="How much memory the executor can use maximally (only used for type='limit')")
-    class Config:
-        use_enum_values = True
-        env_prefix = 'vaex_memory_tracker_'
+    model_config = SettingsConfigDict(use_enum_values=True, env_prefix='vaex_memory_tracker_')
 
 
 
 class TaskTracker(BaseSettings):
     """task tracking/protection when using vaex in a service"""
-    type: str = Field('', title="Comma seperated string of trackers to run while executing tasks", env="VAEX_TASK_TRACKER")
-    class Config:
-        use_enum_values = True
-        env_prefix = 'vaex_task_tracker_'
+    type: str = Field('', title="Comma seperated string of trackers to run while executing tasks", validation_alias="VAEX_TASK_TRACKER")
+    model_config = SettingsConfigDict(use_enum_values=True, env_prefix='vaex_task_tracker_')
 
 
 class Display(BaseSettings):
     """How a dataframe displays"""
     max_columns: int = Field(200, title="How many column to display when printing out a dataframe")
     max_rows: int = Field(10, title="How many rows to print out before showing the first and last rows")
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         env_prefix = 'vaex_display_'
 
@@ -85,17 +84,21 @@ class Chunk(BaseSettings):
     size: Optional[int] = Field(None, title="When set, fixes the number of chunks, e.g. do not dynamically adjust between min and max")
     size_min: int = Field(1024, title="Minimum chunk size")
     size_max: int = Field(1024**2, title="Maximum chunk size")
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         env_prefix = 'vaex_chunk_'
 
 
 class Cache(BaseSettings):
     """Setting for caching of computation or task results, see the [API](api.html#module-vaex.cache) for more details."""
-    type: Optional[str] = Field(None, env='VAEX_CACHE', title="Type of cache, e.g. 'memory_infinite', 'memory', 'disk', 'redis', or a multilevel cache, e.g. 'memory,disk'")
+    type: Optional[str] = Field(None, validation_alias='VAEX_CACHE', title="Type of cache, e.g. 'memory_infinite', 'memory', 'disk', 'redis', or a multilevel cache, e.g. 'memory,disk'")
     disk_size_limit: str = Field('10GB', title='Maximum size for cache on disk, e.g. 10GB, 500MB')
     memory_size_limit: str = Field('1GB', title='Maximum size for cache in memory, e.g. 1GB, 500MB')
-    path: Optional[str] = Field(os.path.join(_default_home, "cache"), env="VAEX_CACHE_PATH", title="Storage location for cache results. Defaults to `${VAEX_HOME}/cache`")
+    path: Optional[str] = Field(os.path.join(_default_home, "cache"), validation_alias="VAEX_CACHE_PATH", title="Storage location for cache results. Defaults to `${VAEX_HOME}/cache`")
 
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         env_prefix = 'vaex_cache_'
 
@@ -116,23 +119,29 @@ if has_server:
 
 class FileSystem(BaseSettings):
     """Filesystem configuration"""
-    path: str = Field(os.path.join(_default_home, "file-cache"), env="VAEX_FS_PATH", title="Storage location for caching files from remote file systems. Defaults to `${VAEX_HOME}/file-cache/`")
+    path: str = Field(os.path.join(_default_home, "file-cache"), validation_alias="VAEX_FS_PATH", title="Storage location for caching files from remote file systems. Defaults to `${VAEX_HOME}/file-cache/`")
 
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         env_prefix = 'vaex_fs_'
 
 class Data(BaseSettings):
     """Data configuration"""
-    path: str = Field(os.path.join(_default_home, "data"), env="VAEX_DATA_PATH", title="Storage location for data files, like vaex.example(). Defaults to `${VAEX_HOME}/data/`")
+    path: str = Field(os.path.join(_default_home, "data"), validation_alias="VAEX_DATA_PATH", title="Storage location for data files, like vaex.example(). Defaults to `${VAEX_HOME}/data/`")
 
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         env_prefix = 'vaex_data_'
 
 class Progress(BaseSettings):
     """Data configuration"""
     type: str = Field('simple', title="Default progressbar to show: 'simple', 'rich' or 'widget'")
-    force: Optional[str] = Field(None, title="Force showing a progress bar of this type, even when no progress bar was requested from user code", env="VAEX_PROGRESS")
+    force: Optional[str] = Field(None, title="Force showing a progress bar of this type, even when no progress bar was requested from user code", validation_alias="VAEX_PROGRESS")
 
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         env_prefix = 'vaex_progress_'
 
@@ -150,6 +159,8 @@ Note that settings `vaex.settings.main.logging.info` etc at runtime, has no dire
     info : str = Field('', title="Comma seperated list of loggers to set to the info level (e.g. 'vaex.settings,vaex.cache'), or a '1' to set the root logger ('vaex')")
     warning : str = Field('vaex', title="Comma seperated list of loggers to set to the warning level (e.g. 'vaex.settings,vaex.cache'), or a '1' to set the root logger ('vaex')")
     error : str = Field('', title="Comma seperated list of loggers to set to the error level (e.g. 'vaex.settings,vaex.cache'), or a '1' to set the root logger ('vaex')")
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         env_prefix = 'vaex_logging_'
 
@@ -157,27 +168,27 @@ Note that settings `vaex.settings.main.logging.info` etc at runtime, has no dire
 class Settings(BaseSettings):
     """General settings for vaex"""
     aliases: Optional[dict] = Field(title='Aliases to be used for vaex.open', default_factory=dict)
-    async_: AsyncEnum = Field('nest', env='VAEX_ASYNC', title="How to run async code in the local executor")
-    home: str = Field(_default_home, env="VAEX_HOME", title="Home directory for vaex, which defaults to `$HOME/.vaex`, "\
+    async_: AsyncEnum = Field('nest', validation_alias='VAEX_ASYNC', title="How to run async code in the local executor")
+    home: str = Field(_default_home, validation_alias="VAEX_HOME", title="Home directory for vaex, which defaults to `$HOME/.vaex`, "\
         " If both `$VAEX_HOME` and `$HOME` are not defined, the current working directory is used. (Note that this setting cannot be configured from the vaex home directory itself).")
     mmap: bool = Field(True, title="Experimental to turn off, will avoid using memory mapping if set to False")
     process_count: Optional[int] = Field(None, title="Number of processes to use for multiprocessing (e.g. apply), defaults to thread_count setting", gt=0)
-    thread_count: Optional[int] = Field(None, env='VAEX_NUM_THREADS', title="Number of threads to use for computations, defaults to multiprocessing.cpu_count()", gt=0)
-    thread_count_io: Optional[int] = Field(None, env='VAEX_NUM_THREADS_IO', title="Number of threads to use for IO, defaults to thread_count_io + 1", gt=0)
-    path_lock: str = Field(os.path.join(_default_home, "lock"), env="VAEX_LOCK", title="Directory to store lock files for vaex, which defaults to `${VAEX_HOME}/lock/`, "\
+    thread_count: Optional[int] = Field(None, validation_alias='VAEX_NUM_THREADS', title="Number of threads to use for computations, defaults to multiprocessing.cpu_count()", gt=0)
+    thread_count_io: Optional[int] = Field(None, validation_alias='VAEX_NUM_THREADS_IO', title="Number of threads to use for IO, defaults to thread_count_io + 1", gt=0)
+    path_lock: str = Field(os.path.join(_default_home, "lock"), validation_alias="VAEX_LOCK", title="Directory to store lock files for vaex, which defaults to `${VAEX_HOME}/lock/`, "\
         " Due to possible race conditions lock files cannot be removed while processes using Vaex are running (on Unix systems).")
 
 
     # avoid name collisions of VAEX_CACHE with configurting the whole object via json in env var
-    cache: Cache = Field(Cache(), env='_VAEX_CACHE')
-    chunk: Chunk = Field(Chunk(), env='_VAEX_CHUNK')
-    data: Data = Field(Data(), env='_VAEX_DATA')
-    display: Display = Field(Display(), env='_VAEX_DISPLAY')
-    fs: FileSystem = Field(FileSystem(), env='_VAEX_FS')
-    memory_tracker: MemoryTracker = Field(MemoryTracker(), env='_VAEX_MEMORY_TRACKER')
-    task_tracker: TaskTracker = Field(TaskTracker(), env='_VAEX_TASK_TRACKER')
-    logging: Logging = Field(Logging(), env="_VAEX_LOGGING")
-    progress: Progress = Field(Progress(), env="_VAEX_PROGRESS")
+    cache: Cache = Field(Cache(), validation_alias='_VAEX_CACHE')
+    chunk: Chunk = Field(Chunk(), validation_alias='_VAEX_CHUNK')
+    data: Data = Field(Data(), validation_alias='_VAEX_DATA')
+    display: Display = Field(Display(), validation_alias='_VAEX_DISPLAY')
+    fs: FileSystem = Field(FileSystem(), validation_alias='_VAEX_FS')
+    memory_tracker: MemoryTracker = Field(MemoryTracker(), validation_alias='_VAEX_MEMORY_TRACKER')
+    task_tracker: TaskTracker = Field(TaskTracker(), validation_alias='_VAEX_TASK_TRACKER')
+    logging: Logging = Field(Logging(), validation_alias="_VAEX_LOGGING")
+    progress: Progress = Field(Progress(), validation_alias="_VAEX_PROGRESS")
 
     if has_server:
         server: vaex.server.settings.Settings = vaex.server.settings.Settings()
@@ -195,6 +206,8 @@ class Settings(BaseSettings):
             self.process_count = self.thread_count
             self.__fields__['process_count'].default = self.thread_count
 
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(ConfigDefault):
         use_enum_values = True
         allow_population_by_field_name = True

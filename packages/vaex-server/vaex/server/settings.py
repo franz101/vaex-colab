@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     # vaex_config: dict = None
     graphql: bool = Field(False, title="Add graphql endpoint")
     files: Dict[str, str] = Field(default_factory=dict, title="Mapping of name to path")
+    # TODO[pydantic]: The `Config` class inherits from another class, please create the `model_config` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     class Config(vaex.config.ConfigDefault):
         env_file = '.env'
         env_file_encoding = 'utf-8'
